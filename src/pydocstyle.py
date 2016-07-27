@@ -713,6 +713,8 @@ D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
                                  'at the second line')
+D222 = D2xx.create_error('D222', '1 blank line required after function '
+                                 'docstring', 'found %s')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -1475,6 +1477,20 @@ class PEP257Checker(object):
                 yield D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
                 yield D202(blanks_after_count)
+
+    @check_for(Function)
+    def check_blank_after(self, function, docstring):  # def
+        """D222: Blank line required after function docstring.
+
+        There's no blank line after the docstring.
+
+        """
+        if docstring:
+            before, _, after = function.source.partition(docstring)
+            blanks_after = list(map(is_blank, after.split('\n')[1:]))
+            blanks_after_count = sum(takewhile(bool, blanks_after))
+            if blanks_after_count == 0:
+                yield D222(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
